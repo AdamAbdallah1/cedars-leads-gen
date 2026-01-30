@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   FaUser, FaWhatsapp, FaSearch, FaMagic, FaSun, FaMoon, FaTrashAlt,
   FaMapMarkedAlt, FaRocket, FaBolt, FaCheckSquare, FaSquare, 
-  FaLayerGroup, FaCommentDots, FaCheckCircle, FaCrown, FaDatabase, FaTerminal, FaCode, FaFileExport
+  FaLayerGroup, FaCommentDots, FaCheckCircle, FaCrown, FaDatabase, FaTerminal, FaCode, FaFileExport, FaGlobe, FaPhoneAlt, FaFilter, FaSyncAlt
 } from "react-icons/fa";
 import { auth, db } from "../../firebase";
 import { signOut } from "firebase/auth";
@@ -13,7 +13,28 @@ import {
 } from "firebase/firestore";
 import Profile from "./Profile";
 
-const CATEGORIES = ["Medical & Clinics", "Law & Consulting", "Real Estate & Construction", "Finance & Accounting", "Education & Training", "Marketing & Media", "Beauty & Wellness", "IT & Software", "Logistics & Transport", "Hospitality & Food", "Retail & Showrooms", "Automotive"];
+const CATEGORIES = [
+  "Medical & Clinics", 
+  "Law & Consulting", 
+  "Real Estate & Construction", 
+  "Finance & Accounting", 
+  "Education & Training", 
+  "Marketing & Media", 
+  "Beauty & Wellness", 
+  "IT & Software", 
+  "Logistics & Transport", 
+  "Hospitality & Food", 
+  "Retail & Showrooms", 
+  "Automotive",
+  "Solar & Green Energy",      
+  "E-commerce & Boutiques",    
+  "Insurance Agencies",        
+  "Travel & Tourism",          
+  "Industrial & Factories",    
+  "Event Planning & Venues",   
+  "Interior Design",          
+  "Pet Care & Vets"           
+];
 
 const STATUS_COLORS = {
   "New": "text-blue-400 bg-blue-400/10 border-blue-400/20",
@@ -27,7 +48,11 @@ export default function Home() {
   const [darkMode, setDarkMode] = useState(true);
   const [category, setCategory] = useState("Medical & Clinics");
   const [city, setCity] = useState("");
-  const [globalMessage, setGlobalMessage] = useState("Hello, this is Adam from Cedars Tech. I came across your business on Google Maps and wanted to ask: do you currently have a website for your business?");
+  
+  // DYNAMIC SCRIPT STATES
+  const [userBusiness, setUserBusiness] = useState("Web Development"); // Default for you, Adam
+  const [globalMessage, setGlobalMessage] = useState("");
+  
   const [leads, setLeads] = useState([]);
   const [historyLeads, setHistoryLeads] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -40,21 +65,53 @@ export default function Home() {
   const [plan, setPlan] = useState("free");
   const [selectedLeads, setSelectedLeads] = useState([]);
 
+  const [webFilter, setWebFilter] = useState("all"); 
+  const [phoneFilter, setPhoneFilter] = useState("all");
+
   const isFounder = userEmail === "abdallahadam130@gmail.com"; 
+
+  // AUTOMATIC SCRIPT GENERATOR LOGIC
+  const generateSmartScript = () => {
+    const biz = userBusiness.toLowerCase();
+    let script = "";
+
+    if (biz.includes("web") || biz.includes("software") || biz.includes("tech")) {
+      script = `Hello! I'm reaching out from Cedars Tech. I noticed your business in ${city || 'your area'} doesn't have a modern website yet. We specialize in helping ${category} grow online. Would you be open to a 2-minute chat?`;
+    } else if (biz.includes("real estate")) {
+      script = `Hi! I saw your listing/business in ${city}. I work in Real Estate and I'm looking for new partnership opportunities or properties in the ${category} sector. Do you have a moment to connect?`;
+    } else if (biz.includes("clinic") || biz.includes("medical")) {
+      script = `Hello, I'm contacting you regarding your ${category} services in ${city}. I'm looking to coordinate a professional referral/visit. Do you accept new patients or inquiries via WhatsApp?`;
+    } else {
+      // Universal Professional Script
+      script = `Hello, I found your business under ${category} in ${city}. I am interested in your services and would like to ask a few questions. Are you the right person to speak with?`;
+    }
+    setGlobalMessage(script);
+  };
+
+  // Update script whenever Category, City, or User Business changes
+  useEffect(() => {
+    generateSmartScript();
+  }, [category, city, userBusiness]);
 
   const currentLeads = view === "scan" ? leads : historyLeads;
   
   const filteredLeads = useMemo(() => {
     return currentLeads
       .filter(l => (l.Name || "").toLowerCase().includes(searchTerm.toLowerCase()))
+      .filter(l => {
+        const hasWeb = l.Website && l.Website.length > 5 && !l.Website.toLowerCase().includes("none");
+        const hasPhone = l.Phone && l.Phone.length > 5;
+        const matchesWeb = webFilter === "all" || (webFilter === "with" ? hasWeb : !hasWeb);
+        const matchesPhone = phoneFilter === "all" || (phoneFilter === "with" ? hasPhone : !hasPhone);
+        return matchesWeb && matchesPhone;
+      })
       .map((l, index) => ({
         ...l,
         displayId: view === "scan" ? index : l.id,
         isHighPriority: !l.Website || l.Website.toLowerCase().includes("none") || l.Website.length < 5,
       }));
-  }, [currentLeads, searchTerm, view]);
+  }, [currentLeads, searchTerm, webFilter, phoneFilter, view]);
 
-  // STATS LOGIC - Now includes "Scanned" (Current session leads)
   const stats = useMemo(() => ({
     scanned: leads.length,
     total: historyLeads.length,
@@ -71,7 +128,8 @@ export default function Home() {
     const unsubUser = onSnapshot(doc(db, "users", uid), (snap) => {
       if (snap.exists()) { 
         setAttemptsLeft(snap.data().attemptsLeft ?? 0); 
-        setPlan(snap.data().plan ?? "free"); 
+        setPlan(snap.data().plan ?? "free");
+        if(snap.data().businessType) setUserBusiness(snap.data().businessType);
       }
     });
 
@@ -82,7 +140,6 @@ export default function Home() {
     return () => { unsubUser(); unsubHistory(); };
   }, [view]);
 
-  // EXPORT TO CSV LOGIC
   const exportToCSV = () => {
     if (historyLeads.length === 0) return alert("No leads in database to export.");
     const headers = ["Name", "Phone", "Category", "Address", "Website", "Status"];
@@ -233,7 +290,6 @@ export default function Home() {
           </div>
         </header>
 
-        {/* --- DYNAMIC STATS BAR --- */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-10 text-left">
             {[
                 { label: "Scanned", val: stats.scanned, icon: <FaSearch/>, color: "text-blue-400" },
@@ -263,12 +319,26 @@ export default function Home() {
               </form>
             </div>
 
+            {/* 🔥 UPDATED DYNAMIC WHATSAPP HOOK */}
             <div className={`border rounded-[2rem] p-6 backdrop-blur-md ${darkMode ? 'bg-white/[0.02] border-white/10' : 'bg-white shadow-xl'}`}>
-               <h2 className="text-[10px] font-black uppercase tracking-widest mb-4 flex items-center gap-2 opacity-40 text-left"><FaCommentDots className="text-blue-500"/> WhatsApp Hook</h2>
-               <textarea value={globalMessage} onChange={(e)=>setGlobalMessage(e.target.value)} className={`w-full h-32 rounded-2xl px-5 py-4 text-[11px] font-medium outline-none border transition resize-none ${darkMode ? 'bg-black border-white/10 text-slate-300' : 'bg-slate-50'}`} />
+               <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2 opacity-40 text-left"><FaCommentDots className="text-blue-500"/> WhatsApp Hook</h2>
+                  <button onClick={generateSmartScript} className="p-2 hover:bg-white/10 rounded-lg text-blue-500 transition-all"><FaSyncAlt size={12}/></button>
+               </div>
+               
+               <div className="space-y-3">
+                 <p className="text-[8px] font-black uppercase opacity-30 text-left">Your Profession</p>
+                 <input 
+                  value={userBusiness} 
+                  onChange={(e) => setUserBusiness(e.target.value)}
+                  placeholder="e.g. Web Developer, Real Estate..." 
+                  className={`w-full rounded-xl px-4 py-2 text-[10px] font-bold outline-none border transition ${darkMode ? 'bg-black/40 border-white/10 text-white' : 'bg-slate-50'}`} 
+                 />
+                 <p className="text-[8px] font-black uppercase opacity-30 text-left mt-2">Generated Message</p>
+                 <textarea value={globalMessage} onChange={(e)=>setGlobalMessage(e.target.value)} className={`w-full h-32 rounded-2xl px-5 py-4 text-[11px] font-medium outline-none border transition resize-none ${darkMode ? 'bg-black border-white/10 text-slate-300' : 'bg-slate-50'}`} />
+               </div>
             </div>
             
-            {/* Professional Export Section */}
             <div className={`border rounded-[2rem] p-6 backdrop-blur-md ${darkMode ? 'bg-white/[0.02] border-white/10' : 'bg-white border-black/5'}`}>
                <h2 className="text-[10px] font-black uppercase tracking-widest mb-4 opacity-40 text-left">Data Management</h2>
                <button onClick={exportToCSV} className="w-full py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all flex items-center justify-center gap-3">
@@ -278,16 +348,36 @@ export default function Home() {
           </aside>
 
           <main className="lg:col-span-8 space-y-6">
-            <div className="flex flex-col sm:flex-row items-center gap-4">
-                <div className="relative flex-1 w-full">
-                    <FaSearch className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500" />
-                    <input value={searchTerm} onChange={e=>setSearchTerm(e.target.value)} placeholder="Search leads..." className={`w-full border rounded-2xl pl-14 pr-6 py-4 text-xs font-bold outline-none transition backdrop-blur-sm ${darkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-black/5'}`} />
+            <div className="flex flex-col gap-4">
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                    <div className="relative flex-1 w-full">
+                        <FaSearch className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500" />
+                        <input value={searchTerm} onChange={e=>setSearchTerm(e.target.value)} placeholder="Search leads by name..." className={`w-full border rounded-2xl pl-14 pr-6 py-4 text-xs font-bold outline-none transition backdrop-blur-sm ${darkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-black/5'}`} />
+                    </div>
+                    {selectedLeads.length > 0 && (
+                        <motion.button initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} onClick={() => handleBulkAction("selected")} className={`w-full sm:w-auto px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl transition-all ${view === 'scan' ? 'bg-blue-600 text-white' : 'bg-rose-600 text-white ring-4 ring-rose-600/20'}`}>
+                            {view === 'scan' ? `Save ${selectedLeads.length}` : `Wipe ${selectedLeads.length}`}
+                        </motion.button>
+                    )}
                 </div>
-                {selectedLeads.length > 0 && (
-                    <motion.button initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} onClick={() => handleBulkAction("selected")} className={`w-full sm:w-auto px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl transition-all ${view === 'scan' ? 'bg-blue-600 text-white' : 'bg-rose-600 text-white ring-4 ring-rose-600/20'}`}>
-                        {view === 'scan' ? `Save ${selectedLeads.length}` : `Wipe ${selectedLeads.length} Leads`}
-                    </motion.button>
-                )}
+
+                <div className={`flex flex-wrap items-center gap-3 p-3 border rounded-[1.5rem] transition-all ${darkMode ? 'bg-white/[0.02] border-white/10' : 'bg-white shadow-sm'}`}>
+                   <div className="flex items-center gap-2 px-3 py-1.5 text-[9px] font-black uppercase text-blue-500/60 border-r border-white/10 mr-2"><FaFilter/> Filters</div>
+                   <div className="flex bg-black/20 p-1 rounded-xl gap-1">
+                      {['all', 'with', 'without'].map((f) => (
+                        <button key={f} onClick={()=>setWebFilter(f)} className={`px-3 py-1.5 rounded-lg text-[8px] font-black uppercase transition-all ${webFilter === f ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}>
+                          {f === 'all' ? <FaGlobe className="inline mr-1"/> : null} {f} Web
+                        </button>
+                      ))}
+                   </div>
+                   <div className="flex bg-black/20 p-1 rounded-xl gap-1">
+                      {['all', 'with', 'without'].map((f) => (
+                        <button key={f} onClick={()=>setPhoneFilter(f)} className={`px-3 py-1.5 rounded-lg text-[8px] font-black uppercase transition-all ${phoneFilter === f ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}>
+                          {f === 'all' ? <FaPhoneAlt className="inline mr-1"/> : null} {f} Phone
+                        </button>
+                      ))}
+                   </div>
+                </div>
             </div>
 
             <div className="flex items-center justify-between px-6 py-2">
@@ -296,10 +386,10 @@ export default function Home() {
                         {selectedLeads.length === filteredLeads.length && filteredLeads.length > 0 ? <FaCheckSquare size={18}/> : <FaSquare size={18}/>}
                     </div>
                     <span className="text-[10px] font-black uppercase tracking-widest opacity-50 group-hover:opacity-100 transition-opacity">
-                        {selectedLeads.length === filteredLeads.length && filteredLeads.length > 0 ? "Deselect All" : "Select All Visible"}
+                        {selectedLeads.length === filteredLeads.length && filteredLeads.length > 0 ? "Deselect All" : "Select Visible"}
                     </span>
                 </button>
-                <p className="text-[10px] font-black uppercase tracking-widest opacity-30">{filteredLeads.length} items</p>
+                <p className="text-[10px] font-black uppercase tracking-widest opacity-30">{filteredLeads.length} matches</p>
             </div>
 
             <div className="space-y-4">
@@ -318,7 +408,7 @@ export default function Home() {
                           <span className={`text-[8px] font-black px-3 py-1 rounded-full border ${STATUS_COLORS[lead.status] || 'bg-slate-500/10'}`}>{lead.status}</span>
                         </div>
                         <h3 className="text-lg font-black italic tracking-tighter uppercase mb-1 truncate">{lead.Name}</h3>
-                        <p className="text-[10px] font-bold text-slate-500 flex items-center gap-2 mb-4"><FaMapMarkedAlt className="text-blue-500"/> {lead.Address}</p>
+                        <p className="text-[10px] font-bold text-slate-500 flex items-center gap-2 mb-4 truncate"><FaMapMarkedAlt className="text-blue-500"/> {lead.Address}</p>
                         <div className="flex items-center gap-3">
                           <button onClick={() => openWhatsApp(lead)} className="px-5 py-2.5 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-xl text-[9px] font-black uppercase hover:bg-emerald-500 hover:text-white transition-all flex items-center gap-2"><FaMagic/> WhatsApp</button>
                           {view === "history" && (
@@ -327,7 +417,7 @@ export default function Home() {
                         </div>
                       </div>
                       <div className="hidden sm:flex flex-col items-end justify-between text-right">
-                        <p className="text-base font-black font-mono tracking-tighter text-blue-500">{lead.Phone}</p>
+                        <p className="text-base font-black font-mono tracking-tighter text-blue-500">{lead.Phone || "NO PHONE"}</p>
                         <div className={`w-12 h-12 border rounded-2xl flex items-center justify-center transition-all ${isSelected ? 'bg-blue-600 text-white shadow-blue-500/30 shadow-lg' : 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20'}`}><FaWhatsapp size={24}/></div>
                       </div>
                     </div>
