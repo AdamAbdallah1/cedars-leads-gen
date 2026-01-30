@@ -4,6 +4,8 @@ import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/aut
 import { auth } from "../../firebase";
 import { FaEye, FaEyeSlash, FaSignInAlt, FaSyncAlt, FaTimes, FaSpinner } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
+import LiquidEther from '../components/LiquidEther';
+
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -59,20 +61,47 @@ export default function Login() {
   };
 
   return (
-    <div className="relative min-h-screen w-full bg-slate-950 text-white flex items-center justify-center p-4 font-sans selection:bg-pink-500/30 overflow-hidden">
+    // Changed bg-slate-950 to a simple background so the liquid shows through
+    <div className="relative min-h-screen w-full bg-[#020617] text-white flex items-center justify-center p-4 font-sans selection:bg-pink-500/30 overflow-hidden">
       
-      {/* YOUR SPECIFIC BACKGROUND - FIXED */}
-      <div className="absolute inset-0 h-full w-full bg-slate-950 pointer-events-none">
-        <div className="absolute bottom-0 left-[-20%] right-0 top-[-10%] h-[500px] w-[500px] rounded-full bg-[radial-gradient(circle_farthest-side,rgba(255,0,182,.15),rgba(255,255,255,0))]"></div>
-        <div className="absolute bottom-0 right-[-20%] top-[-10%] h-[500px] w-[500px] rounded-full bg-[radial-gradient(circle_farthest-side,rgba(255,0,182,.15),rgba(255,255,255,0))]"></div>
+      {/* 1. LIQUID BACKGROUND LAYER (Bottom-most) */}
+      <div className="fixed inset-0 z-0 h-screen w-screen pointer-events-none">
+        <LiquidEther
+          colors={[ '#5227FF', '#FF9FFC', '#B19EEF' ]}
+          mouseForce={8}
+          cursorSize={100}
+          isViscous={true}
+          viscous={30}
+          iterationsViscous={32}
+          iterationsPoisson={32}
+          resolution={0.5}
+          isBounce={false}
+          autoDemo={true}
+          autoSpeed={0.5}
+          autoIntensity={2.2}
+          takeoverDuration={0.25}
+          autoResumeDelay={3000}
+          autoRampDuration={0.6}
+          color0="#5227FF"
+          color1="#FF9FFC"
+          color2="#B19EEF"
+        />
+        {/* Subtle overlay for contrast */}
+        <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-[2px]"></div>
       </div>
 
+      {/* 2. PINK GLOW ACCENTS (Middle Layer - Removed the bg-slate-950 here) */}
+      <div className="absolute inset-0 h-full w-full pointer-events-none z-[1]">
+        <div className="absolute bottom-0 left-[-20%] right-0 top-[-10%] h-[500px] w-[500px] rounded-full bg-[radial-gradient(circle_farthest-side,rgba(255,0,182,.12),rgba(255,255,255,0))]"></div>
+        <div className="absolute bottom-0 right-[-20%] top-[-10%] h-[500px] w-[500px] rounded-full bg-[radial-gradient(circle_farthest-side,rgba(255,0,182,.12),rgba(255,255,255,0))]"></div>
+      </div>
+
+      {/* 3. LOGIN CARD (Top Layer) */}
       <motion.div 
         initial={{ opacity: 0, y: 20 }} 
         animate={{ opacity: 1, y: 0 }}
         className="relative z-10 w-full max-w-[380px] bg-white/[0.03] border border-white/[0.08] backdrop-blur-3xl rounded-[2.5rem] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden"
       >
-        {/* Top Accent Line - Matches pink theme */}
         <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-pink-500/40 to-transparent" />
 
         <div className="space-y-6">
