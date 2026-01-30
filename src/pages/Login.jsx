@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../../firebase";
-import { FaEye, FaEyeSlash, FaSignInAlt, FaSyncAlt, FaTimes, FaSpinner, FaPaperPlane } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaSignInAlt, FaSyncAlt, FaTimes, FaSpinner } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Login() {
@@ -59,19 +59,12 @@ export default function Login() {
   };
 
   return (
-    <div className="relative min-h-screen w-full bg-slate-950 text-white flex items-center justify-center p-4 font-sans selection:bg-blue-500/30 overflow-hidden">
-      {/* Animated Gradient Background */}
-      <div className="absolute inset-0 pointer-events-none">
-        <motion.div 
-          animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
-          transition={{ duration: 8, repeat: Infinity }}
-          className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/20 rounded-full blur-[120px]"
-        />
-        <motion.div 
-          animate={{ scale: [1, 1.3, 1], opacity: [0.2, 0.4, 0.2] }}
-          transition={{ duration: 10, repeat: Infinity, delay: 1 }}
-          className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-indigo-600/20 rounded-full blur-[120px]"
-        />
+    <div className="relative min-h-screen w-full bg-slate-950 text-white flex items-center justify-center p-4 font-sans selection:bg-pink-500/30 overflow-hidden">
+      
+      {/* YOUR SPECIFIC BACKGROUND - FIXED */}
+      <div className="absolute inset-0 h-full w-full bg-slate-950 pointer-events-none">
+        <div className="absolute bottom-0 left-[-20%] right-0 top-[-10%] h-[500px] w-[500px] rounded-full bg-[radial-gradient(circle_farthest-side,rgba(255,0,182,.15),rgba(255,255,255,0))]"></div>
+        <div className="absolute bottom-0 right-[-20%] top-[-10%] h-[500px] w-[500px] rounded-full bg-[radial-gradient(circle_farthest-side,rgba(255,0,182,.15),rgba(255,255,255,0))]"></div>
       </div>
 
       <motion.div 
@@ -79,14 +72,14 @@ export default function Login() {
         animate={{ opacity: 1, y: 0 }}
         className="relative z-10 w-full max-w-[380px] bg-white/[0.03] border border-white/[0.08] backdrop-blur-3xl rounded-[2.5rem] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden"
       >
-        {/* Top Accent Line */}
-        <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
+        {/* Top Accent Line - Matches pink theme */}
+        <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-pink-500/40 to-transparent" />
 
         <div className="space-y-6">
           <div className="text-center">
               <motion.div 
                 whileHover={{ rotate: 45, scale: 1.1 }}
-                className="w-12 h-12 bg-white rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.2)] cursor-pointer"
+                className="w-12 h-12 bg-white rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.15)] cursor-pointer"
               >
                   <div className="w-5 h-5 border-[2.5px] border-slate-950 rounded-sm rotate-45"></div>
               </motion.div>
@@ -99,14 +92,14 @@ export default function Login() {
                 whileFocus={{ scale: 1.01 }}
                 ref={emailRef} type="email" placeholder="Email Address" value={email} 
                 onChange={(e) => setEmail(e.target.value)} 
-                className="w-full bg-white/[0.05] border border-white/[0.1] rounded-xl px-4 py-3.5 outline-none text-sm transition-all focus:border-blue-500 focus:bg-white/[0.08] placeholder:text-slate-600" 
+                className="w-full bg-white/[0.05] border border-white/[0.1] rounded-xl px-4 py-3.5 outline-none text-sm transition-all focus:border-pink-500/50 focus:bg-white/[0.08] placeholder:text-slate-600" 
               />
               <div className="relative">
                   <motion.input 
                     whileFocus={{ scale: 1.01 }}
                     type={showPassword ? "text" : "password"} placeholder="Access Key" value={password} 
                     onChange={(e) => setPassword(e.target.value)} 
-                    className="w-full bg-white/[0.05] border border-white/[0.1] rounded-xl px-4 py-3.5 outline-none text-sm transition-all focus:border-blue-500 focus:bg-white/[0.08] placeholder:text-slate-600" 
+                    className="w-full bg-white/[0.05] border border-white/[0.1] rounded-xl px-4 py-3.5 outline-none text-sm transition-all focus:border-pink-500/50 focus:bg-white/[0.08] placeholder:text-slate-600" 
                   />
                   <button onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors p-1">
                     {showPassword ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
@@ -114,7 +107,7 @@ export default function Login() {
               </div>
           </div>
 
-          <button onClick={() => setShowResetModal(true)} className="text-xs font-semibold text-blue-400/80 hover:text-blue-300 block mx-auto transition-colors">
+          <button onClick={() => setShowResetModal(true)} className="text-xs font-semibold text-pink-400/80 hover:text-pink-300 block mx-auto transition-colors">
             Forgot access key?
           </button>
 
@@ -130,19 +123,19 @@ export default function Login() {
                 <motion.div 
                   initial={{ x: "-100%" }} animate={{ x: "100%" }}
                   transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-200/20 to-transparent"
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-pink-200/20 to-transparent"
                 />
               )}
               {loading ? <FaSpinner className="animate-spin text-lg" /> : <>Authorize Access <FaSignInAlt size={14}/></>}
           </motion.button>
 
           <p className="text-center text-xs font-medium text-slate-500 pt-2">
-            New operator? <Link to="/leads/signup" className="text-white hover:text-blue-400 underline-offset-4 hover:underline transition-all">Create Registry</Link>
+            New operator? <Link to="/leads/signup" className="text-white hover:text-pink-400 underline-offset-4 hover:underline transition-all">Create Registry</Link>
           </p>
         </div>
       </motion.div>
 
-      {/* Password Recovery Modal */}
+      {/* Recovery Modal */}
       <AnimatePresence>
         {showResetModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-950/90 backdrop-blur-md">
@@ -157,8 +150,8 @@ export default function Login() {
               </button>
               
               <div className="text-center mb-6">
-                <div className="w-12 h-12 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-500/20">
-                  <FaSyncAlt className="text-blue-500" size={18}/>
+                <div className="w-12 h-12 bg-pink-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-pink-500/20">
+                  <FaSyncAlt className="text-pink-500" size={18}/>
                 </div>
                 <h3 className="text-xl font-bold text-white tracking-tight">Recover Access</h3>
               </div>
@@ -166,7 +159,7 @@ export default function Login() {
               <input 
                 type="email" placeholder="Operator Email" value={resetEmail} 
                 onChange={e => setResetEmail(e.target.value)} 
-                className="w-full bg-white/[0.05] border border-white/[0.1] rounded-xl px-4 py-3 text-sm text-white mb-4 outline-none focus:border-blue-500" 
+                className="w-full bg-white/[0.05] border border-white/[0.1] rounded-xl px-4 py-3 text-sm text-white mb-4 outline-none focus:border-pink-500" 
               />
               
               {resetMessage.text && (
