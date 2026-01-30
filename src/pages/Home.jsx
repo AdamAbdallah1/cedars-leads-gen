@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   FaUser, FaWhatsapp, FaSearch, FaMagic, FaSun, FaMoon, FaTrashAlt,
   FaMapMarkedAlt, FaRocket, FaBolt, FaCheckSquare, FaSquare, 
-  FaLayerGroup, FaCommentDots, FaCheckCircle, FaCrown, FaDatabase, FaTerminal, FaCode
+  FaLayerGroup, FaCommentDots, FaCheckCircle, FaCrown, FaDatabase, FaTerminal, FaCode, FaFileExport
 } from "react-icons/fa";
 import { auth, db } from "../../firebase";
 import { signOut } from "firebase/auth";
@@ -40,7 +40,6 @@ export default function Home() {
   const [plan, setPlan] = useState("free");
   const [selectedLeads, setSelectedLeads] = useState([]);
 
-  // FOUNDER BYPASS - Change this to your actual email for unlimited credits
   const isFounder = userEmail === "abdallahadam130@gmail.com"; 
 
   const currentLeads = view === "scan" ? leads : historyLeads;
@@ -55,19 +54,20 @@ export default function Home() {
       }));
   }, [currentLeads, searchTerm, view]);
 
+  // STATS LOGIC - Now includes "Scanned" (Current session leads)
   const stats = useMemo(() => ({
+    scanned: leads.length,
     total: historyLeads.length,
     contacted: historyLeads.filter(l => l.status === "Contacted").length,
     gold: historyLeads.filter(l => !l.Website || l.Website.length < 5).length,
     remaining: (plan === "pro" || isFounder) ? "∞" : attemptsLeft
-  }), [historyLeads, plan, attemptsLeft, isFounder]);
+  }), [leads, historyLeads, plan, attemptsLeft, isFounder]);
 
   useEffect(() => {
     if (!auth.currentUser) return;
     const uid = auth.currentUser.uid;
     setUserEmail(auth.currentUser.email);
     
-    // Listening to User Data for Credits
     const unsubUser = onSnapshot(doc(db, "users", uid), (snap) => {
       if (snap.exists()) { 
         setAttemptsLeft(snap.data().attemptsLeft ?? 0); 
@@ -81,6 +81,21 @@ export default function Home() {
     setSelectedLeads([]);
     return () => { unsubUser(); unsubHistory(); };
   }, [view]);
+
+  // EXPORT TO CSV LOGIC
+  const exportToCSV = () => {
+    if (historyLeads.length === 0) return alert("No leads in database to export.");
+    const headers = ["Name", "Phone", "Category", "Address", "Website", "Status"];
+    const rows = historyLeads.map(l => [
+      `"${l.Name}"`, `"${l.Phone}"`, `"${l.Category}"`, `"${l.Address}"`, `"${l.Website || 'None'}"`, `"${l.status}"`
+    ]);
+    const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `CedarsLeads_Export_${new Date().toLocaleDateString()}.csv`;
+    link.click();
+  };
 
   const toggleSelectAll = () => {
     if (selectedLeads.length === filteredLeads.length) setSelectedLeads([]);
@@ -127,11 +142,10 @@ export default function Home() {
     setView("scan"); setLeads([]); setLoading(true); setProgress(0);
     try {
       const res = await fetch("/api/generate-stream", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ category, city })
-});
-
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ category, city })
+      });
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       while (true) {
@@ -145,7 +159,6 @@ export default function Home() {
           if (parsed.type === "progress") setProgress(parsed.data);
         }
       }
-      // Subtract credit if not Pro/Founder
       if (plan !== "pro" && !isFounder) {
         await updateDoc(doc(db, "users", auth.currentUser.uid), { attemptsLeft: increment(-1) });
       }
@@ -220,9 +233,11 @@ export default function Home() {
           </div>
         </header>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10 text-left">
+        {/* --- DYNAMIC STATS BAR --- */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-10 text-left">
             {[
-                { label: "Stored Leads", val: stats.total, icon: <FaLayerGroup/>, color: "text-blue-500" },
+                { label: "Scanned", val: stats.scanned, icon: <FaSearch/>, color: "text-blue-400" },
+                { label: "Stored", val: stats.total, icon: <FaLayerGroup/>, color: "text-blue-500" },
                 { label: "Contacted", val: stats.contacted, icon: <FaCheckCircle/>, color: "text-emerald-500" },
                 { label: "Gold Mine", val: stats.gold, icon: <FaCrown/>, color: "text-amber-500" },
                 { label: "Remaining", val: stats.remaining, icon: <FaBolt/>, color: "text-purple-500" }
@@ -251,6 +266,14 @@ export default function Home() {
             <div className={`border rounded-[2rem] p-6 backdrop-blur-md ${darkMode ? 'bg-white/[0.02] border-white/10' : 'bg-white shadow-xl'}`}>
                <h2 className="text-[10px] font-black uppercase tracking-widest mb-4 flex items-center gap-2 opacity-40 text-left"><FaCommentDots className="text-blue-500"/> WhatsApp Hook</h2>
                <textarea value={globalMessage} onChange={(e)=>setGlobalMessage(e.target.value)} className={`w-full h-32 rounded-2xl px-5 py-4 text-[11px] font-medium outline-none border transition resize-none ${darkMode ? 'bg-black border-white/10 text-slate-300' : 'bg-slate-50'}`} />
+            </div>
+            
+            {/* Professional Export Section */}
+            <div className={`border rounded-[2rem] p-6 backdrop-blur-md ${darkMode ? 'bg-white/[0.02] border-white/10' : 'bg-white border-black/5'}`}>
+               <h2 className="text-[10px] font-black uppercase tracking-widest mb-4 opacity-40 text-left">Data Management</h2>
+               <button onClick={exportToCSV} className="w-full py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all flex items-center justify-center gap-3">
+                  <FaFileExport className="text-blue-500"/> Export Database (CSV)
+               </button>
             </div>
           </aside>
 
