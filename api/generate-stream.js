@@ -45,7 +45,7 @@ const CATEGORIES = {
     "advertising agency {city}",
     "branding consultancy {city}",
     "video production studio {city}",
-    "pension media {city}"
+    "social media agency {city}"
   ],
   "Beauty & Wellness": [
     "beauty salon {city}",
@@ -55,8 +55,8 @@ const CATEGORIES = {
     "hair transplant clinic {city}"
   ],
   "IT & Software": [
-    "software development {city}",
-    "web development {city}",
+    "software development company {city}",
+    "web development agency {city}",
     "tech startup {city}",
     "cybersecurity firm {city}",
     "it support services {city}"
@@ -69,17 +69,17 @@ const CATEGORIES = {
     "moving company {city}"
   ],
   "Hospitality & Food": [
-    "boutique hotel {city}",
+    "restaurant {city}",
+    "cafe {city}",
     "catering service {city}",
-    "fine dining restaurant {city}",
-    "event planner {city}",
-    "pastry shop {city}"
+    "hotel {city}",
+    "bakery {city}"
   ],
   "Retail & Showrooms": [
-    "luxury furniture showroom {city}",
+    "furniture showroom {city}",
     "clothing boutique {city}",
     "jewelry store {city}",
-    "electronics retailer {city}",
+    "electronics shop {city}",
     "optical shop {city}"
   ],
   "Automotive": [
@@ -87,9 +87,69 @@ const CATEGORIES = {
     "auto repair shop {city}",
     "car rental agency {city}",
     "tire center {city}",
-    "detailing studio {city}"
+    "car detailing studio {city}"
+  ],
+
+  // ✅ NEW ONES YOU WERE MISSING
+
+  "Solar & Green Energy": [
+    "solar panel company {city}",
+    "renewable energy firm {city}",
+    "solar installation services {city}",
+    "green energy solutions {city}",
+    "solar inverter supplier {city}"
+  ],
+  "E-commerce & Boutiques": [
+    "online store {city}",
+    "ecommerce business {city}",
+    "fashion boutique {city}",
+    "instagram shop {city}",
+    "retail startup {city}"
+  ],
+  "Insurance Agencies": [
+    "insurance agency {city}",
+    "life insurance office {city}",
+    "car insurance broker {city}",
+    "health insurance company {city}",
+    "insurance consultancy {city}"
+  ],
+  "Travel & Tourism": [
+    "travel agency {city}",
+    "tour operator {city}",
+    "tourism office {city}",
+    "holiday planner {city}",
+    "visa services {city}"
+  ],
+  "Industrial & Factories": [
+    "manufacturing factory {city}",
+    "industrial company {city}",
+    "production plant {city}",
+    "packaging factory {city}",
+    "metal works factory {city}"
+  ],
+  "Event Planning & Venues": [
+    "event planning company {city}",
+    "wedding venue {city}",
+    "banquet hall {city}",
+    "conference center {city}",
+    "event organizer {city}"
+  ],
+  "Interior Design": [
+    "interior design studio {city}",
+    "home decor company {city}",
+    "office fitout firm {city}",
+    "furniture design studio {city}",
+    "space planning service {city}"
+  ],
+  "Pet Care & Vets": [
+    "veterinary clinic {city}",
+    "pet shop {city}",
+    "animal hospital {city}",
+    "pet grooming salon {city}",
+    "pet boarding service {city}"
   ]
 };
+
 
 const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 
