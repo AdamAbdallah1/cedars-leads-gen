@@ -198,7 +198,7 @@ export default function Home() {
     }
     setView("scan"); setLeads([]); setLoading(true); setProgress(0);
     try {
-      const res = await fetch("https://www.cedarstech.info/api/generate-stream", {
+      const res = await fetch("/api/generate-stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ category, city })
